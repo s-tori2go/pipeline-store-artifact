@@ -1,0 +1,38 @@
+name: .NET
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+    
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 6.0.x
+    - name: Restore dependencies
+      run: dotnet restore
+    - name: Build
+      run: dotnet build --no-restore
+    - name: Test
+      run: dotnet test --no-build --verbosity normal
+    - name: Azure Container Registry Login
+      uses: Azure/docker-login@v1
+      with:
+        # Container registry username
+        username: ${{ secrets.IDI2020_REGISTRY_USERNAME }}
+        # Container registry password
+        password: ${{ secrets.IDI2020_REGISTRY_PASSWORD }}
+        # Container registry server url
+        login-server: idi2020.azurecr.io
+    - name: Build the Docker image
+      run: docker build . --file Dockerfile --tag dotnet-pipeline_sivi:latest
+    - name: Tag the Docker image
+      run: docker tag dotnet-pipeline_sivi:latest idi2020.azurecr.io/dotnet-pipeline_sivi:latest
+    - name: Publish the Docker image
+      run: docker push idi2020.azurecr.io/dotnet-pipeline_sivi:latest
