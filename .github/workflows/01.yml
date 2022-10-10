@@ -1,0 +1,16 @@
+name: CLI
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: calculate and write file
+        run: echo $((1+1)) > Result.txt
+      - name: export result as artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: results
+          path: .
